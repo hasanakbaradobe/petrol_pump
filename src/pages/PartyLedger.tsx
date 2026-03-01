@@ -4,6 +4,12 @@ import { AuthContext } from '../context/AuthContext';
 import { Plus, Edit2, Trash2, Droplets, Search } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
 
+const formatDescription = (desc: string, unit?: string) => {
+  if (!desc) return '';
+  if (!unit) return desc;
+  return desc.replace(/(\d+(?:\.\d+)?)L of/, `$1${unit} of`);
+};
+
 const PartyLedger = () => {
   const { user } = useContext(AuthContext) || {};
   const isAdmin = user?.role === 'admin';
@@ -404,7 +410,9 @@ const PartyLedger = () => {
                     <input type="number" step="0.01" value={fuelForm.rate} onChange={e => handleFuelCalculate('rate', e.target.value)} className="block w-full rounded-xl border-slate-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3 border bg-slate-50 focus:bg-white transition-colors" placeholder="0.00" />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-1">Quantity</label>
+                    <label className="block text-sm font-semibold text-slate-700 mb-1">
+                      Quantity {fuelForm.fuel_id ? `(${fuels.find(f => f.id.toString() === fuelForm.fuel_id)?.unit || 'L'})` : ''}
+                    </label>
                     <input type="number" step="0.01" value={fuelForm.quantity} onChange={e => handleFuelCalculate('quantity', e.target.value)} className="block w-full rounded-xl border-slate-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3 border bg-slate-50 focus:bg-white transition-colors" placeholder="0.00" />
                   </div>
                   <div>
@@ -455,6 +463,7 @@ const PartyLedger = () => {
                     <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Date</th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Party</th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Description</th>
+                    <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase">Quantity</th>
                     <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase">Amount</th>
                     <th className="px-6 py-4 text-center text-xs font-bold text-slate-500 uppercase">Type</th>
                   </tr>
@@ -464,7 +473,10 @@ const PartyLedger = () => {
                     <tr key={entry.id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{new Date(entry.createdAt).toLocaleString()}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-900">{entry.Party?.name}</td>
-                      <td className="px-6 py-4 text-sm text-slate-600">{entry.description}</td>
+                      <td className="px-6 py-4 text-sm text-slate-600">{formatDescription(entry.description, entry.Transaction?.Fuel?.unit)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-slate-600">
+                        {entry.Transaction?.quantity ? `${Number(entry.Transaction.quantity).toFixed(2)} ${entry.Transaction.Fuel?.unit || 'L'}` : '-'}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-right text-slate-900">৳{Number(entry.amount).toFixed(2)}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         {(() => {

@@ -7,6 +7,12 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
+const formatDescription = (desc: string, unit?: string) => {
+  if (!desc) return '';
+  if (!unit) return desc;
+  return desc.replace(/(\d+(?:\.\d+)?)L of/, `$1${unit} of`);
+};
+
 const SellTransactions = () => {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [filter, setFilter] = useState<'all' | 'party' | 'cash'>('all');
@@ -91,7 +97,7 @@ const SellTransactions = () => {
     const exportData = transactions.map(tx => {
       let description = '';
       if (tx.category === 'party') {
-        description = `${tx.description} (${tx.Party?.name})`;
+        description = `${formatDescription(tx.description, tx.Transaction?.Fuel?.unit)} (${tx.Party?.name})`;
       } else if (tx.category === 'cash') {
         description = `Cash Sale: ${tx.Fuel?.name}`;
       }
@@ -101,6 +107,11 @@ const SellTransactions = () => {
         'Category': tx.category.toUpperCase(),
         'Description': description,
         'User': tx.User?.username || 'System',
+        'Quantity': (() => {
+          const qty = tx.category === 'cash' ? tx.quantity : tx.Transaction?.quantity;
+          const unit = tx.category === 'cash' ? tx.Fuel?.unit : tx.Transaction?.Fuel?.unit;
+          return qty ? `${Number(qty).toFixed(2)} ${unit || 'L'}` : '-';
+        })(),
         'Payment Method': tx.payment_method || 'N/A',
         'Amount (৳)': Number(tx.total_amount || tx.amount).toFixed(2),
         'Type': isIncomeTx(tx) ? 'INCOME' : 'EXPENSE'
@@ -148,7 +159,7 @@ const SellTransactions = () => {
     doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 44);
 
     // Prepare Table Data
-    const tableColumn = ["Date & Time", "Category", "Description", "User", "Method", "Amount", "Type"];
+    const tableColumn = ["Date & Time", "Category", "Description", "User", "Quantity", "Method", "Amount", "Type"];
     const tableRows: any[] = [];
 
     let totalIncome = 0;
@@ -157,7 +168,7 @@ const SellTransactions = () => {
     transactions.forEach(tx => {
       let description = '';
       if (tx.category === 'party') {
-        description = `${tx.description} (${tx.Party?.name})`;
+        description = `${formatDescription(tx.description, tx.Transaction?.Fuel?.unit)} (${tx.Party?.name})`;
       } else if (tx.category === 'cash') {
         description = `Cash Sale: ${tx.Fuel?.name}`;
       }
@@ -168,11 +179,16 @@ const SellTransactions = () => {
       if (isIncome) totalIncome += amount;
       else totalExpense += amount;
 
+      const qty = tx.category === 'cash' ? tx.quantity : tx.Transaction?.quantity;
+      const unit = tx.category === 'cash' ? tx.Fuel?.unit : tx.Transaction?.Fuel?.unit;
+      const quantityDisplay = qty ? `${Number(qty).toFixed(2)} ${unit || 'L'}` : '-';
+
       const transactionData = [
         formatDate(tx.createdAt),
         tx.category.toUpperCase(),
         description,
         tx.User?.username || 'System',
+        quantityDisplay,
         tx.payment_method || 'N/A',
         amount.toFixed(2),
         isIncome ? 'INCOME' : 'EXPENSE'
@@ -190,11 +206,11 @@ const SellTransactions = () => {
       headStyles: { fillColor: [248, 250, 252], textColor: [71, 85, 105], fontStyle: 'bold' },
       alternateRowStyles: { fillColor: [250, 250, 250] },
       columnStyles: {
-        5: { halign: 'right', fontStyle: 'bold' },
-        6: { fontStyle: 'bold' }
+        6: { halign: 'right', fontStyle: 'bold' },
+        7: { fontStyle: 'bold' }
       },
       didParseCell: function(data: any) {
-        if (data.section === 'body' && data.column.index === 6) {
+        if (data.section === 'body' && data.column.index === 7) {
           if (data.cell.raw === 'INCOME') {
             data.cell.styles.textColor = [5, 150, 105]; // Emerald-600
           } else {
@@ -369,6 +385,7 @@ const SellTransactions = () => {
                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Category</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Description</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">User</th>
+                <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Quantity</th>
                 <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Amount</th>
               </tr>
             </thead>
@@ -403,7 +420,7 @@ const SellTransactions = () => {
                     <td className="px-6 py-4">
                       <div className="text-sm text-slate-900 font-medium">
                         {tx.category === 'party' && (
-                          <span>{tx.description} ({tx.Party?.name})</span>
+                          <span>{formatDescription(tx.description, tx.Transaction?.Fuel?.unit)} ({tx.Party?.name})</span>
                         )}
                         {tx.category === 'cash' && (
                           <span>
@@ -421,6 +438,15 @@ const SellTransactions = () => {
                           <User size={12} />
                         </div>
                         {tx.User?.username || 'System'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <div className="text-sm text-slate-600">
+                        {(() => {
+                          const qty = tx.category === 'cash' ? tx.quantity : tx.Transaction?.quantity;
+                          const unit = tx.category === 'cash' ? tx.Fuel?.unit : tx.Transaction?.Fuel?.unit;
+                          return qty ? `${Number(qty).toFixed(2)} ${unit || 'L'}` : '-';
+                        })()}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">

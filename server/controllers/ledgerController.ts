@@ -76,7 +76,7 @@ export const addFuelPurchase = async (req: Request, res: Response) => {
         user_id,
         amount: total_amount,
         type: 'credit', 
-        description: `Fuel Purchase: ${quantity}L of ${fuel.name}`,
+        description: `Fuel Purchase: ${quantity}${fuel.unit || 'L'} of ${fuel.name}`,
       }, { transaction: t });
 
       const party = await Party.findByPk(party_id, { transaction: t });
@@ -176,7 +176,7 @@ export const getLedger = async (req: Request, res: Response) => {
     const transactionInclude: any = {
       model: Transaction,
       attributes: ['id', 'type', 'quantity', 'total_amount', 'fuel_id'],
-      include: [{ model: Fuel, attributes: ['id', 'name'] }]
+      include: [{ model: Fuel, attributes: ['id', 'name', 'unit'] }]
     };
 
     if (fuel_id) {
@@ -266,7 +266,7 @@ export const getAllTransactions = async (req: Request, res: Response) => {
 
       const txInclude: any = { 
         model: Transaction, 
-        include: [{ model: Fuel, attributes: ['name'] }] 
+        include: [{ model: Fuel, attributes: ['name', 'unit'] }] 
       };
 
       if (fuel_id) {
@@ -298,7 +298,7 @@ export const getAllTransactions = async (req: Request, res: Response) => {
       const cashTxs = await Transaction.findAll({
         where: cashWhere,
         include: [
-          { model: Fuel, attributes: ['name'] },
+          { model: Fuel, attributes: ['name', 'unit'] },
           { model: User, attributes: ['username'] }
         ],
         order: [['createdAt', 'DESC']]

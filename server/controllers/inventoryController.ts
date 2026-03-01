@@ -71,7 +71,7 @@ export const setOpeningStock = async (req: Request, res: Response) => {
 export const getCurrentStock = async (req: Request, res: Response) => {
   try {
     const fuels = await Fuel.findAll({
-      attributes: ['id', 'name', 'current_stock', 'price_per_litre'],
+      attributes: ['id', 'name', 'current_stock', 'price_per_litre', 'unit'],
       order: [['name', 'ASC']]
     });
 
@@ -82,6 +82,7 @@ export const getCurrentStock = async (req: Request, res: Response) => {
         name: f.name,
         current_stock: currentStock,
         price_per_litre: f.price_per_litre,
+        unit: f.unit,
         low_stock_warning: currentStock <= LOW_STOCK_THRESHOLD,
         threshold: LOW_STOCK_THRESHOLD
       };
@@ -135,7 +136,7 @@ export const getAllInventoryHistory = async (req: Request, res: Response) => {
     const history = await Inventory.findAll({
       where,
       include: [
-        { model: Fuel, attributes: ['name'] },
+        { model: Fuel, attributes: ['name', 'unit'] },
         { model: User, attributes: ['username'] }, // User who did manual adjustment
         transactionInclude
       ],

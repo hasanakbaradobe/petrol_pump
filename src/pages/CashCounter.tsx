@@ -124,7 +124,9 @@ const CashCounter = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div onClick={() => setActiveField('quantity')} className={`p-1 rounded-xl border-2 transition-colors ${activeField === 'quantity' ? 'border-indigo-500' : 'border-transparent'}`}>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1">Quantity</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">
+                    Quantity {formData.fuel_id ? `(${fuels.find(f => f.id.toString() === formData.fuel_id)?.unit || 'L'})` : ''}
+                  </label>
                   <input type="number" step="0.01" value={formData.quantity} onChange={e => handleCalculate('quantity', e.target.value)} onFocus={() => setActiveField('quantity')} className="block w-full rounded-xl border-slate-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3 border bg-slate-50 focus:bg-white transition-colors" placeholder="0.00" />
                 </div>
                 <div onClick={() => setActiveField('total_amount')} className={`p-1 rounded-xl border-2 transition-colors ${activeField === 'total_amount' ? 'border-indigo-500' : 'border-transparent'}`}>

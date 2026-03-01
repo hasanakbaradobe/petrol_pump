@@ -98,7 +98,7 @@ export const createSale = async (req: Request, res: Response) => {
         user_id,
         amount: total_amount,
         type: 'debit', 
-        description: `Fuel Sale: ${quantity}L of ${fuel.name}`,
+        description: `Fuel Sale: ${quantity}${fuel.unit || 'L'} of ${fuel.name}`,
       }, { transaction: t });
 
       const party = await Party.findByPk(party_id, { transaction: t });
@@ -146,7 +146,7 @@ export const getSales = async (req: Request, res: Response) => {
     const sales = await Transaction.findAll({
       where: whereCondition,
       include: [
-        { model: Fuel, attributes: ['id', 'name', 'price_per_litre'] },
+        { model: Fuel, attributes: ['id', 'name', 'price_per_litre', 'unit'] },
         { model: User, attributes: ['id', 'username', 'role'] },
         { model: Party, attributes: ['id', 'name'] },
       ],

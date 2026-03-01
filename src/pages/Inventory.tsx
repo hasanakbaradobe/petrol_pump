@@ -246,7 +246,7 @@ const Inventory = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right font-bold text-slate-900">
-                        {item.transaction_type === 'in' ? '+' : '-'}{Number(item.quantity).toFixed(2)} L
+                        {item.transaction_type === 'in' ? '+' : '-'}{Number(item.quantity).toFixed(2)} {item.Fuel?.unit || 'L'}
                       </td>
                     </motion.tr>
                   ))

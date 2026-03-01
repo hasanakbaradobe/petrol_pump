@@ -75,7 +75,8 @@ const Dashboard = () => {
         setStockData(stock.map((s: any) => ({
           name: s.name,
           stock: Number(s.current_stock),
-          threshold: s.threshold
+          threshold: s.threshold,
+          unit: s.unit || 'L'
         })));
 
         // Prepare Chart Data: Sales Trend (Last 7 Days)
@@ -180,7 +181,7 @@ const Dashboard = () => {
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
                 <Tooltip 
                   contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                  formatter={(value: number) => [`${value} L`, 'Current Stock']}
+                  formatter={(value: number, name: string, props: any) => [`${value} ${props.payload.unit || 'L'}`, 'Current Stock']}
                 />
                 <Bar dataKey="stock" radius={[6, 6, 0, 0]}>
                   {stockData.map((entry, index) => (
@@ -219,7 +220,7 @@ const Dashboard = () => {
                     {sale.Fuel?.name || 'Unknown'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                    {Number(sale.quantity).toFixed(2)} L
+                    {Number(sale.quantity).toFixed(2)} {sale.Fuel?.unit || 'L'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-right text-slate-900">
                     ৳{Number(sale.total_amount).toFixed(2)}
